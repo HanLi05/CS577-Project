@@ -9,4 +9,10 @@ data/interim/
 data/processed/
 reports/review_*.jsonl
 reports/review_*.csv
+matching/**/candidates.csv
+matching/**/players.csv
+matching/**/scoring_rounds.csv
+matching/**/approved_links.csv
+matching/**/status.csv
+matching/**/inputs.json
 

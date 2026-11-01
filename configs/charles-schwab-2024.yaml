@@ -1,0 +1,13 @@
+# One tournament to start. These dates are suggestions, not human approvals.
+year: 2024
+event_id: '401580352'
+name: Charles Schwab Challenge
+asap_name: CHARLES SCHWAB CHALLENGE
+round_dates:
+  1: '2024-05-23'
+  2: '2024-05-24'
+  3: '2024-05-25'
+  4: '2024-05-26'
+round_notes_url: https://pgatourmedia.pgatourhq.com/tours/2024/pgatour/charlesschwabchallenge
+cache_dir: .local/http-cache
+output_dir: matching/charles-schwab-2024

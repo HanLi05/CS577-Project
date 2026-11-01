@@ -4,7 +4,7 @@ import json
 import pytest
 import requests
 
-from golf_interviews.sources import Cache, CacheError
+from golf_matching.sources import Cache, CacheError
 
 
 class Response:
