@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+.DS_Store
+.local/
+data/raw/
+data/interim/
+data/processed/
+reports/review_*.jsonl
+reports/review_*.csv
+
