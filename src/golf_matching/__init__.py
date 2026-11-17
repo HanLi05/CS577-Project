@@ -1,1 +1,1 @@
-"""Human-reviewed links between golf interviews and scoring records."""
+"""Pre-tournament and post-round golf interviews linked to identities and available scores."""

@@ -5,9 +5,9 @@ build-backend = "hatchling.build"
 [project]
 name = "golf-matching"
 version = "0.1.0"
-description = "Human-reviewed matching of golf interviews to scoring records"
+description = "Match pre-tournament and post-round golf interviews using dates and source metadata"
 requires-python = ">=3.12"
-dependencies = ["pandas>=2.2", "pyarrow>=18", "requests>=2.32", "beautifulsoup4>=4.12", "PyYAML>=6"]
+dependencies = ["pandas>=2.2", "pyarrow>=18", "requests>=2.32", "beautifulsoup4>=4.12"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

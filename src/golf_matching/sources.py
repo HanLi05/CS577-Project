@@ -4,7 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import time
-from urllib.parse import urljoin
+from urllib.parse import urljoin, parse_qs, urlparse
 from urllib.robotparser import RobotFileParser
 
 from bs4 import BeautifulSoup
@@ -103,3 +103,51 @@ def fetch_asset(cache, assets, name):
     if digest and digest.startswith('sha256:') and hashlib.sha256(path.read_bytes()).hexdigest() != digest[7:]:
         raise CacheError(f"Release digest mismatch: {name}")
     return path
+
+
+def event_fingerprint(row):
+    """Bind event approval to source names, scoring ID, year, and schedule dates."""
+    fields = ('year', 'tournament', 'event_id', 'scoring_name', 'start_date', 'end_date')
+    return hashlib.sha256(json.dumps([str(row.get(k, '')) for k in fields]).encode()).hexdigest()
+
+
+def discover_events(cache, years):
+    """Inventory ASAP golf archives against PGA schedules; never approve a match."""
+    import pandas as pd
+    from .preprocessing import normalize
+
+    assets = release_assets(cache)
+    robots = cache.check_robots(ASAP)
+    rows, coverage = [], {}
+    for year in sorted(set(years)):
+        try:
+            annual = f'{ASAP}show_year.php?category=4&year={year}'
+            if not robots.can_fetch('*', annual):
+                raise CacheError(f'Collection disallowed: {annual}')
+            archive = links(cache.fetch(annual).read_bytes(), annual, 'show_events.php')
+            schedule = pd.read_parquet(fetch_asset(cache, assets, f'schedule_{year}.parquet'))
+            has_holes = f'holes_{year}.parquet' in assets
+            for name, url in archive:
+                found = schedule.loc[schedule.tournament_name.map(normalize) == normalize(name)]
+                unique = len(found) == 1
+                record = found.iloc[0] if unique else {}
+                title = parse_qs(urlparse(url).query).get('title', [name])[0]
+                row = dict(event_key=f'{year}:{title}', year=str(year),
+                    tournament=name, asap_url=url,
+                    suggested_event_id=str(record['event_id']) if unique else '',
+                    event_id=str(record['event_id']) if unique else '',
+                    scoring_name=str(record['tournament_name']) if unique else '',
+                    start_date=str(record['start_date'])[:10] if unique else '',
+                    end_date=str(record['end_date'])[:10] if unique else '',
+                    coverage=('schedule_match' if unique else 'ambiguous_name' if len(found) else 'no_name_match')
+                             if has_holes else 'missing_holes_asset',
+                    collect='no', decision='pending')
+                row['source_hash'] = event_fingerprint(row)
+                rows.append(row)
+            coverage[str(year)] = dict(status='ok', archive_events=len(archive),
+                                       schedule_events=len(schedule), holes_asset_available=has_holes)
+            print(f'{year}: {len(archive)} archive events; {len(schedule)} scoring schedule entries.')
+        except (CacheError, requests.RequestException, ValueError) as error:
+            coverage[str(year)] = dict(status='unavailable', reason=str(error))
+            print(f'{year}: unavailable: {error}')
+    return rows, coverage
